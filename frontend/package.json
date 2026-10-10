@@ -1,0 +1,70 @@
+import express from 'express';
+import Booking from '../models/Booking.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+router.get('/', protect, async (req, res) => {
+  try {
+    const filter = req.user.role === 'admin' ? {} : req.user.role === 'provider'
+      ? { provider: req.user.id }
+      : { customer: req.user.id };
+
+    const bookings = await Booking.find(filter)
+      .populate('customer', 'name email')
+      .populate('provider')
+      .populate('service');
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch bookings.' });
+  }
+});
+
+router.post('/', protect, authorize('customer', 'admin'), async (req, res) => {
+  try {
+    const { provider, service, bookingDate, bookingTime, location, notes } = req.body;
+
+    if (!provider || !service || !bookingDate || !bookingTime || !location) {
+      return res.status(400).json({ message: 'Booking details are incomplete.' });
+    }
+
+    const booking = await Booking.create({
+      customer: req.user.id,
+      provider,
+      service,
+      bookingDate,
+      bookingTime,
+      location,
+      notes,
+    });
+
+    res.status(201).json(booking);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create booking.', error: error.message });
+  }
+});
+
+router.patch('/:id/status', protect, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found.' });
+    }
+
+    if (req.user.role !== 'admin' && booking.provider.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not allowed to update this booking.' });
+    }
+
+    booking.status = status;
+    await booking.save();
+
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update booking status.' });
+  }
+});
+
+export default router;

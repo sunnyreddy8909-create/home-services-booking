@@ -1,0 +1,81 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api';
+
+function DashboardPage({ token, user }) {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!token || !user) {
+      setLoading(false);
+      return;
+    }
+
+    axios
+      .get(`${API_URL}/bookings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setBookings(res.data))
+      .catch((err) => console.log('Booking fetch error', err))
+      .finally(() => setLoading(false));
+  }, [token, user]);
+
+  if (!user) {
+    return (
+      <div className="panel">
+        <h2>Please log in to view the dashboard.</h2>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="panel">Loading dashboard...</div>;
+  }
+
+  return (
+    <div className="content-section">
+      <div className="section-heading">
+        <span className="eyebrow">Dashboard</span>
+        <h2>Welcome, {user.name}</h2>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <span>Total bookings</span>
+          <strong>{bookings.length}</strong>
+        </div>
+        <div className="stat-card">
+          <span>Role</span>
+          <strong>{user.role}</strong>
+        </div>
+        <div className="stat-card">
+          <span>Location</span>
+          <strong>{user.location || 'Not provided'}</strong>
+        </div>
+      </div>
+
+      <div className="booking-list panel">
+        <h3>Recent bookings</h3>
+        {bookings.length === 0 ? (
+          <p>No bookings yet.</p>
+        ) : (
+          bookings.map((booking) => (
+            <div className="booking-item" key={booking._id}>
+              <div>
+                <strong>{booking.service?.title || 'Service'}</strong>
+                <p>
+                  {booking.bookingDate} at {booking.bookingTime}
+                </p>
+              </div>
+              <span className="status-badge">{booking.status}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default DashboardPage;
