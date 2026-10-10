@@ -1,81 +1,522 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api';
-
-function DashboardPage({ token, user }) {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!token || !user) {
-      setLoading(false);
-      return;
-    }
-
-    axios
-      .get(`${API_URL}/bookings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setBookings(res.data))
-      .catch((err) => console.log('Booking fetch error', err))
-      .finally(() => setLoading(false));
-  }, [token, user]);
-
-  if (!user) {
-    return (
-      <div className="panel">
-        <h2>Please log in to view the dashboard.</h2>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return <div className="panel">Loading dashboard...</div>;
-  }
-
-  return (
-    <div className="content-section">
-      <div className="section-heading">
-        <span className="eyebrow">Dashboard</span>
-        <h2>Welcome, {user.name}</h2>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span>Total bookings</span>
-          <strong>{bookings.length}</strong>
-        </div>
-        <div className="stat-card">
-          <span>Role</span>
-          <strong>{user.role}</strong>
-        </div>
-        <div className="stat-card">
-          <span>Location</span>
-          <strong>{user.location || 'Not provided'}</strong>
-        </div>
-      </div>
-
-      <div className="booking-list panel">
-        <h3>Recent bookings</h3>
-        {bookings.length === 0 ? (
-          <p>No bookings yet.</p>
-        ) : (
-          bookings.map((booking) => (
-            <div className="booking-item" key={booking._id}>
-              <div>
-                <strong>{booking.service?.title || 'Service'}</strong>
-                <p>
-                  {booking.bookingDate} at {booking.bookingTime}
-                </p>
-              </div>
-              <span className="status-badge">{booking.status}</span>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+:root {
+  font-family: Inter, 'Segoe UI', sans-serif;
+  color: #1f2937;
+  background: #f5f7fb;
+  line-height: 1.5;
+  font-weight: 400;
 }
 
-export default DashboardPage;
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  background: #f4f7fb;
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 4rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  font-weight: 700;
+}
+
+.brand-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.07rem;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.nav a {
+  color: #374151;
+  font-weight: 600;
+}
+
+.nav a.active {
+  color: #2563eb;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.user-pill {
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 600;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.toggle-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+}
+
+.primary-btn:hover,
+.secondary-btn:hover,
+.danger-btn:hover,
+.toggle-btn:hover {
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: #eef2ff;
+  color: #1f2a44;
+}
+
+.danger-btn {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.2rem 1.2rem 3rem;
+}
+
+.hero-section {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr;
+  gap: 2rem;
+  align-items: center;
+  padding: 2rem 0 1.5rem;
+}
+
+.hero-copy h1 {
+  margin: 0.4rem 0 1rem;
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: 1.05;
+  color: #111827;
+}
+
+.hero-copy p {
+  font-size: 1.05rem;
+  color: #4b5563;
+  max-width: 640px;
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stats-row {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  padding: 0;
+  margin: 1.2rem 0 0;
+}
+
+.stats-row li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stats-row strong {
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.stats-row span {
+  color: #6b7280;
+}
+
+.hero-card {
+  background: linear-gradient(160deg, #0f172a, #1e293b);
+  color: white;
+  padding: 2rem;
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
+}
+
+.mini-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.mini-card.accent {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.45), rgba(124, 58, 237, 0.2));
+}
+
+.mini-card span {
+  display: block;
+  color: #cbd5e1;
+  margin-bottom: 0.2rem;
+}
+
+.mini-card strong {
+  font-size: 1.2rem;
+}
+
+.content-section {
+  padding-top: 1.4rem;
+}
+
+.section-heading {
+  margin-bottom: 1.4rem;
+}
+
+.section-heading h2 {
+  margin-top: 0.7rem;
+  margin-bottom: 0;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  color: #111827;
+}
+
+.feature-grid,
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+
+.feature-card,
+.service-card,
+.panel,
+.auth-card,
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.feature-card,
+.service-card {
+  padding: 1.4rem;
+}
+
+.feature-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #059669;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.feature-card h3,
+.service-card h3 {
+  margin: 0 0 0.7rem;
+  color: #111827;
+}
+
+.feature-card p,
+.service-card p,
+.service-card li,
+.summary-list li {
+  color: #4b5563;
+}
+
+.service-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.tag {
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.service-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.small {
+  padding: 0.65rem 0.9rem;
+  display: inline-block;
+}
+
+.auth-shell {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+}
+
+.auth-card {
+  width: min(100%, 520px);
+  padding: 2rem;
+}
+
+.auth-header h2 {
+  margin: 0.45rem 0 1rem;
+}
+
+.toggle-row {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.toggle-btn.active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.stack-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.stack-form label {
+  display: grid;
+  gap: 0.45rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.stack-form input,
+.stack-form select,
+.stack-form textarea,
+.status-select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.8rem 0.9rem;
+  color: #111827;
+}
+
+.stack-form textarea {
+  resize: vertical;
+}
+
+.alert {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.alert.success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.alert.error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: 1.35fr 0.8fr;
+  gap: 1.4rem;
+}
+
+.booking-summary {
+  padding: 1.5rem;
+}
+
+.summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 1.4rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.summary-box {
+  background: #eef2ff;
+  color: #312e81;
+  padding: 1rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dashboard-page {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  padding: 1.2rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-card span {
+  color: #6b7280;
+}
+
+.stat-card strong {
+  font-size: 1.8rem;
+  color: #111827;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.booking-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.booking-table th,
+.booking-table td {
+  text-align: left;
+  padding: 0.9rem 0.7rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.booking-table th {
+  color: #374151;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-select {
+  min-width: 135px;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.admin-panel {
+  padding: 1.25rem;
+}
+
+.table-header h3 {
+  margin: 0 0 1rem;
+}
+
+@media (max-width: 800px) {
+  .topbar {
+    padding: 1rem 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-section,
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+  }
+}
